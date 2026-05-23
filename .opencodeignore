@@ -1,0 +1,13 @@
+# Prevent directory traversal
+../
+../../
+
+# Sensitive Files
+*.env
+*.pem
+*.key
+.git/
+node_modules/
+
+# Local System Files
+.DS_Store

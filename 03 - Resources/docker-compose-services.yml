@@ -1,0 +1,67 @@
+services:
+  # ── DNS Ad-Blocker ──────────────────────────
+  # Nota: Pi-hole v6 usa API nova. O exporter pre-built nao funciona.
+  #       O script pihole_exporter.py roda como systemd service.
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - etc-pihole:/etc/pihole
+      - etc-dnsmasq:/etc/dnsmasq.d
+    environment:
+      TZ: America/Sao_Paulo
+      WEBPASSWORD: ${PIHOLE_PASSWORD:-admin}
+      PIHOLE_DNS_: 1.1.1.1;8.8.8.8
+      DNSSEC: "true"
+
+  # ── Monitoring (existing) ───────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    network_mode: host
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/rootfs
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+
+volumes:
+  etc-pihole:
+  etc-dnsmasq:
+  prometheus-data:
+  grafana-data:
