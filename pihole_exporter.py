@@ -5,8 +5,11 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.request import Request, urlopen
 
 PIHOLE_URL = os.getenv("PIHOLE_URL", "http://localhost")
-PIHOLE_PASS = os.getenv("PIHOLE_PASSWORD", "admin")
+PIHOLE_PASS = os.getenv("PIHOLE_PASSWORD")
+if not PIHOLE_PASS:
+    raise SystemExit("PIHOLE_PASSWORD env var is required (do not hardcode)")
 REFRESH = int(os.getenv("REFRESH", "30"))
+BIND_HOST = os.getenv("BIND_HOST", "127.0.0.1")
 
 cache = {"metrics": "", "expires": 0}
 
@@ -68,17 +71,25 @@ def build_metrics():
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/metrics":
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(build_metrics().encode())
+            try:
+                body = build_metrics().encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                self.wfile.write(body)
+            except BrokenPipeError:
+                pass
         else:
-            self.send_response(302)
-            self.send_header("Location", "/metrics")
-            self.end_headers()
+            try:
+                self.send_response(302)
+                self.send_header("Location", "/metrics")
+                self.end_headers()
+            except BrokenPipeError:
+                pass
     def log_message(self, *a): pass
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", "9607"))
-    print(f"pihole-exporter v6 on :{port} -> {PIHOLE_URL}")
-    HTTPServer(("0.0.0.0", port), Handler).serve_forever()
+    print(f"pihole-exporter v6 on {BIND_HOST}:{port} -> {PIHOLE_URL}")
+    HTTPServer((BIND_HOST, port), Handler).serve_forever()

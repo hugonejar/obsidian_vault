@@ -1,0 +1,78 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: hermes-pi
+
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+scrape_configs:
+  # ── Host metrics ──────────────────────────────────────────
+  - job_name: node
+    static_configs:
+      - targets: ['localhost:9100']
+
+  # ── Per-container metrics ─────────────────────────────────
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['localhost:8080']
+    metric_relabel_configs:
+      # Drop high-cardinality / unused metrics to save TSDB.
+      - source_labels: [__name__]
+        regex: 'container_(blkio|tasks_state|memory_failures_total|memory_max_usage_bytes|fs_inodes_(total|free))'
+        action: drop
+      # Strip noisy labels
+      - regex: '(id|container_label_.*)'
+        action: labeldrop
+
+  # ── Pi-hole (custom exporter, systemd) ───────────────────
+  - job_name: pihole
+    static_configs:
+      - targets: ['localhost:9607']
+
+  # ── Prometheus self ───────────────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ── HTTP probes (Hermes, OMLX, Grafana, Pi-hole admin) ───
+  - job_name: blackbox-http
+    metrics_path: /probe
+    params:
+      module: [http_2xx_or_401]
+    static_configs:
+      - targets:
+          - http://localhost:8642/v1/models       # Hermes Gateway
+          - http://192.168.31.117:8000/v1/models  # OMLX on Mac
+          - http://localhost:3000/api/health      # Grafana
+          - http://localhost/admin/                # Pi-hole admin
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115
+
+  # ── TCP probes (DNS port reachability) ───────────────────
+  - job_name: blackbox-tcp
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - localhost:53          # Pi-hole DNS
+          - 192.168.31.117:8000   # OMLX TCP
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115
+
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['localhost:9093']

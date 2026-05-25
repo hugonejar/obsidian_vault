@@ -1,0 +1,115 @@
+groups:
+  - name: hermes-pi.host
+    interval: 30s
+    rules:
+      - alert: PiUnreachable
+        expr: up{job="node"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "node-exporter on hermes-pi is down"
+          description: "Prometheus cannot scrape node-exporter for 2m. Pi may be offline."
+
+      - alert: HighCPU
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "CPU > 85% for 10m on {{ $labels.instance }}"
+
+      - alert: HighMemory
+        expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 90
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "RAM > 90% on {{ $labels.instance }}"
+
+      - alert: DiskFillingUp
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes * 100) > 85
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Disk {{ $labels.mountpoint }} > 85% used"
+
+      - alert: DiskCritical
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes * 100) > 95
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Disk {{ $labels.mountpoint }} > 95% used — risk of write failures"
+
+      - alert: PiHot
+        expr: node_hwmon_temp_celsius > 75
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Pi CPU temp > 75°C"
+
+      - alert: PiThrottle
+        expr: node_hwmon_temp_celsius > 82
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "Pi CPU temp > 82°C — thermal throttling imminent"
+
+  - name: hermes-pi.containers
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: time() - container_last_seen{name!=""} > 120
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: "Container {{ $labels.name }} hasn't reported in 2m"
+
+      - alert: ContainerRestartLoop
+        expr: changes(container_start_time_seconds{name!=""}[15m]) > 3
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Container {{ $labels.name }} restarted >3x in 15m"
+
+  - name: hermes-pi.services
+    interval: 30s
+    rules:
+      - alert: HermesAPIDown
+        expr: probe_success{instance="http://localhost:8642/v1/models"} == 0
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: "Hermes Gateway not responding (probe failing 5m)"
+
+      - alert: OMLXDown
+        expr: probe_success{instance=~"http://192.168.31.117:8000.*"} == 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "OMLX on Mac unreachable — Hermes will be on OpenRouter fallback"
+
+      - alert: GrafanaDown
+        expr: probe_success{instance="http://localhost:3000/api/health"} == 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Grafana health endpoint failing"
+
+      - alert: PiHoleExporterMissing
+        expr: absent(pihole_queries_total)
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "pihole_queries_total metric absent — exporter or auth broken"
+
+      - alert: PiHoleBlockingStopped
+        expr: rate(pihole_queries_blocked[10m]) == 0 and rate(pihole_queries_total[10m]) > 0
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: "Pi-hole receiving queries but blocking 0 — blocklist may be broken"
+
+      - alert: TargetDown
+        expr: up == 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Prometheus target {{ $labels.job }} / {{ $labels.instance }} down"

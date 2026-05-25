@@ -1,0 +1,239 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    { "title": "Node Exporter Full", "type": "link", "url": "/d/rYdddlPWk/node-exporter-full", "targetBlank": false },
+    { "title": "Docker / cAdvisor", "type": "link", "url": "/d/pMEd7m0Mz/docker-and-system-monitoring", "targetBlank": false },
+    { "title": "Blackbox Probes", "type": "link", "url": "/d/xtkCtBkiz/prometheus-blackbox-exporter", "targetBlank": false },
+    { "title": "Prometheus Stats", "type": "link", "url": "/d/prometheus-stats", "targetBlank": false }
+  ],
+  "panels": [
+    {
+      "type": "row",
+      "title": "Status Geral",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "collapsed": false
+    },
+    {
+      "id": 1, "type": "stat", "title": "Pi Uptime",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "time() - node_boot_time_seconds", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "unit": "s", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 60 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Containers Running",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "count(container_last_seen{name!=\"\"} > (time() - 60))", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "unit": "short", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 1 }, { "color": "green", "value": 5 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Pi-hole % Blocked",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "pihole_queries_percent_blocked", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 5 }, { "color": "green", "value": 10 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+    {
+      "id": 4, "type": "stat", "title": "Hermes API",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_success{instance=\"http://localhost:8642/v1/models\"}", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }], "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 5, "type": "stat", "title": "OMLX (Mac)",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_success{instance=\"http://192.168.31.117:8000/v1/models\"}", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }], "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" }
+    },
+    {
+      "id": 6, "type": "stat", "title": "CPU Temp",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "max(node_hwmon_temp_celsius)", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": { "unit": "celsius", "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "orange", "value": 75 }, { "color": "red", "value": 82 }] } }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" }
+    },
+
+    {
+      "type": "row", "title": "Host (Pi 5)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101, "collapsed": false
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "CPU usage %",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[2m])) * 100)", "refId": "A", "legendFormat": "CPU %" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "Memory usage",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes", "refId": "A", "legendFormat": "used" },
+        { "expr": "node_memory_MemAvailable_bytes", "refId": "B", "legendFormat": "available" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "Disk usage % per mountpoint",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "100 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes * 100)", "refId": "A", "legendFormat": "{{ mountpoint }}" }],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 13, "type": "timeseries", "title": "Network throughput",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(node_network_receive_bytes_total{device!~\"lo|docker.*|veth.*\"}[2m])", "refId": "A", "legendFormat": "rx {{ device }}" },
+        { "expr": "rate(node_network_transmit_bytes_total{device!~\"lo|docker.*|veth.*\"}[2m])", "refId": "B", "legendFormat": "tx {{ device }}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps" } }
+    },
+
+    {
+      "type": "row", "title": "Containers",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
+      "id": 102, "collapsed": false
+    },
+    {
+      "id": 20, "type": "timeseries", "title": "CPU % per container",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name!=\"\"}[2m])) * 100", "refId": "A", "legendFormat": "{{ name }}" }],
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    },
+    {
+      "id": 21, "type": "timeseries", "title": "Memory per container (working set)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (name) (container_memory_working_set_bytes{name!=\"\"})", "refId": "A", "legendFormat": "{{ name }}" }],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 22, "type": "table", "title": "Container status",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 29 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "time() - container_last_seen{name!=\"\"}", "refId": "A", "instant": true, "legendFormat": "{{ name }}" },
+        { "expr": "changes(container_start_time_seconds{name!=\"\"}[1h])", "refId": "B", "instant": true, "legendFormat": "{{ name }}" }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "name", "mode": "outer" } }
+      ]
+    },
+
+    {
+      "type": "row", "title": "Pi-hole DNS",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 },
+      "id": 103, "collapsed": false
+    },
+    {
+      "id": 30, "type": "timeseries", "title": "Queries / sec",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 38 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(pihole_queries_total[5m])", "refId": "A", "legendFormat": "total" },
+        { "expr": "rate(pihole_queries_blocked[5m])", "refId": "B", "legendFormat": "blocked" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops" } }
+    },
+    {
+      "id": 31, "type": "timeseries", "title": "Cached vs forwarded",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 38 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(pihole_queries_cached[5m])", "refId": "A", "legendFormat": "cached" },
+        { "expr": "rate(pihole_queries_forwarded[5m])", "refId": "B", "legendFormat": "forwarded" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "stacking": { "mode": "normal" } } } }
+    },
+    {
+      "id": 32, "type": "stat", "title": "Active clients",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 45 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "pihole_clients_active", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 33, "type": "stat", "title": "Gravity domains",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 45 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "pihole_gravity_domains", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 34, "type": "stat", "title": "Unique domains",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 45 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "pihole_queries_unique_domains", "refId": "A" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+
+    {
+      "type": "row", "title": "Hermes Gateway + OMLX",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 49 },
+      "id": 104, "collapsed": false
+    },
+    {
+      "id": 40, "type": "timeseries", "title": "Probe latency",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 50 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "probe_duration_seconds", "refId": "A", "legendFormat": "{{ instance }}" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 41, "type": "timeseries", "title": "Hermes container CPU + RAM",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 50 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name=~\"hermes.*\"}[2m])) * 100", "refId": "A", "legendFormat": "CPU {{ name }}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["hermes-pi", "overview"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Hermes Pi — Overview",
+  "uid": "hermes-pi-overview",
+  "version": 1,
+  "weekStart": ""
+}

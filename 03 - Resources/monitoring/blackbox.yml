@@ -1,0 +1,31 @@
+modules:
+  # Standard 200 OK probe.
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200]
+      follow_redirects: true
+
+  # Accepts 200 OR 401 — useful for endpoints that require auth (Hermes /v1/models).
+  # A 401 means the service is up and answering; 0 or 5xx means it's dead.
+  http_2xx_or_401:
+    prober: http
+    timeout: 5s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200, 401]
+      follow_redirects: true
+
+  # TCP connect probe (just opens the socket).
+  tcp_connect:
+    prober: tcp
+    timeout: 3s
+
+  # ICMP ping (requires CAP_NET_RAW — works in the container).
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: ip4

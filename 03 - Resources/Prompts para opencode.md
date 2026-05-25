@@ -23,7 +23,7 @@ Cole o prompt, veja o resultado, revise e aplique.
 
 > Gera um arquivo `docker-compose.yml` completo para rodar no meu Raspberry Pi (linux/arm64) com os seguintes serviços:
 > - **Prometheus** (imagem prom/prometheus, porta 9090, volume prometheus-data)
-> - **Grafana** (imagem grafana/grafana, porta 3000, volume grafana-data, admin/admin)
+> - **Grafana** (imagem grafana/grafana, porta 3000, volume grafana-data, senha admin lida de `${GRAFANA_PASSWORD}` no .env)
 > - **Node Exporter** (imagem prom/node-exporter, network host, coletando /proc, /sys, /)
 > - **Hermes Agent** (imagem nousresearch/hermes-agent:main, porta 8642, volume ./hermes-data)
 > Todos na mesma rede `app-network` com restart unless-stopped. Quero variáveis de ambiente num arquivo `.env` separado.
